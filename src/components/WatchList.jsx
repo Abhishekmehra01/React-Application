@@ -3,12 +3,17 @@ import { useState } from "react";
 import { useEffect } from "react";
 import genreids from "../Utility/genre";
 
-function WatchList({ watchlist, setWatchlist }) {
+function WatchList({ watchlist, setWatchlist,handleRemoveFromWatchlist }) {
   const [search, setSearch] = useState("");
   const [genreList, setGenreList] = useState(["All Genres"]);
+  const [currGenre, setCurrGenre] = useState("All Genres");
 
   let handleSearch = (e) => {
     setSearch(e.target.value);
+  };
+
+  let handleFilter = (genre) => {
+    setCurrGenre(genre);
   };
 
   let sortIncreasing = () => {
@@ -26,30 +31,35 @@ function WatchList({ watchlist, setWatchlist }) {
     setWatchlist([...SortedDecreasing]);
   };
 
-
   useEffect(() => {
     let temp = watchlist.map((movieObj) => {
       return genreids[movieObj.genre_ids[0]];
-    })
+    });
+    temp = new Set(temp);
 
-    setGenreList(['All Genres',...temp]);
-  },[watchlist])
+    setGenreList(["All Genres", ...temp]);
+  }, [watchlist]);
 
   return (
     <>
       {/* <div className="text-2xl m-5 font-bold text-center">Watchlist</div> */}
       <div className="flex justify-center my-4">
-      <button className="bg-blue-500 text-white px-4 py-2 rounded-xl mx-2 hover:bg-sky-600 ">
-
-All Genres
-</button>
         {genreList.map((genre) => {
-           return <button className="bg-gray-400 text-white px-4 py-2 rounded-xl mx-2">
-          {genre}
-        </button>
+          return (
+            <button
+              onClick={() => {
+                handleFilter(genre);
+              }}
+              className={
+                currGenre === genre
+                  ? "bg-blue-500 text-white px-4 py-2 rounded-xl mx-2 hover:bg-sky-600"
+                  : "bg-gray-400 text-white px-4 py-2 rounded-xl mx-2"
+              }
+            >
+              {genre}
+            </button>
+          );
         })}
-       
-       
       </div>
       <div className="flex justify-center my-4">
         <input
@@ -69,12 +79,14 @@ All Genres
               <th className="flex justify-center">
                 <div onClick={sortIncreasing} className="p-2">
                   <button>
-                  <i class="fa-solid fa-arrow-up"></i></button>
+                    <i class="fa-solid fa-arrow-up"></i>
+                  </button>
                 </div>
                 <div className="p-2">Rating</div>
                 <div onClick={sortDecreasing} className="p-2">
-                <button>
-                  <i class="fa-solid fa-arrow-down"></i></button>
+                  <button>
+                    <i class="fa-solid fa-arrow-down"></i>
+                  </button>
                 </div>
               </th>
               <th>Popularity</th>
@@ -83,7 +95,13 @@ All Genres
           </thead>
 
           <tbody>
-            {watchlist
+            {watchlist.filter((movieObj) => {
+              if (currGenre === "All Genres") {
+                return true;
+              } else {
+                return genreids[movieObj.genre_ids[0]] === currGenre;
+              }
+            })
               .filter((movieObj) => {
                 return movieObj.original_title
                   .toLowerCase()
@@ -106,7 +124,9 @@ All Genres
 
                     <td className="text-red-700">
                       <button>
-                        <i class="fa-solid fa-trash-can"></i>
+                        
+                        <i class="fa-solid fa-trash-can" onClick={() => handleRemoveFromWatchlist(movieObj)}></i>
+                        
                       </button>
                     </td>
                   </tr>
